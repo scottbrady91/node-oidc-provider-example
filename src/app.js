@@ -6,8 +6,8 @@ const app = express();
 const clients = [{
     client_id: 'test_implicit_app',
     grant_types: ['implicit'],
-    response_types: ['id_token token'],
-    redirect_uris: ['https://sdd.new/signin-oidc'],
+    response_types: ['id_token'],
+    redirect_uris: ['https://testapp/signin-oidc'],
     token_endpoint_auth_method: 'none'
 },
 {
@@ -29,12 +29,19 @@ const oidc = new Provider('http://localhost:3000', {
     scopes: ['api1'],
     features: {
         clientCredentials: true,
-        introspection: true
+        introspection: true,
+        sessionManagement: true
+    },
+    async findById(ctx, id) {
+        return {
+            accountId: id,
+            async claims() { return { sub: id }; },
+        };
     }
 });
 
 // no stores configured, all in-memory (dev only)
-oidc.initialize({clients}).then(function () {
+oidc.initialize({ clients }).then(function () {
     app.use('/', oidc.callback);
     app.listen(3000);
 });
